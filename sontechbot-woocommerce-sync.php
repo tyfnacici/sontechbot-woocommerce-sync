@@ -3,7 +3,7 @@
  * Plugin Name: Sontechbot - WooCommerce Senkron
  * Plugin URI:  https://github.com/tyfnacici/sontechbot-woocommerce-sync
  * Description: Exposes single & bulk REST endpoints to get the product, update price & stock by barcode (_original_id), with rate limiting and logging for not-found products.
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      Tayfun Açıcı
  * Author URI:  https://tyfnacici.xyz
  * License:     GPL-3.0
@@ -19,6 +19,34 @@ define( 'WCBSS_RATE_LIMIT', 100 );
 define( 'WCBSS_RATE_PERIOD', 60 );
 define( 'WCBSS_BULK_MAX', 1000 );
 define( 'WCBSS_NOT_FOUND_LOG_OPTION', 'wcbss_not_found_barcodes_log' ); 
+
+// ------------------------------
+// WooCommerce dependency check
+// ------------------------------
+if ( ! function_exists( 'wcbss_require_woocommerce' ) ) {
+    /**
+     * Ensure WooCommerce is installed and active. If it isn't, deactivate this plugin and show an admin notice.
+     */
+    function wcbss_require_woocommerce() {
+        if ( ! class_exists( 'WooCommerce' ) ) {
+            // Show admin error notice.
+            add_action( 'admin_notices', function () {
+                echo '<div class="notice notice-error"><p><strong>Sontechbot - WooCommerce Senkron</strong> eklentisi için <strong>WooCommerce</strong> eklentisi yüklü ve etkin olmalıdır.</p></div>';
+            } );
+            // Deactivate our plugin.
+            deactivate_plugins( plugin_basename( __FILE__ ) );
+            return false;
+        }
+        return true;
+    }
+}
+// Run the check on activation.
+register_activation_hook( __FILE__, 'wcbss_require_woocommerce' );
+// Also bail early during runtime if WooCommerce is missing to prevent fatal errors.
+if ( ! class_exists( 'WooCommerce' ) ) {
+    return;
+}
+
 
 // Uninstall hook to clean up the database when the plugin is deleted.
 register_uninstall_hook( __FILE__, 'wcbss_on_uninstall' );
@@ -334,7 +362,7 @@ function wcbss_render_not_found_log_page() {
 /**
  * GitHub-based auto-update integration
  */
-require __DIR__ . '/plugin-update-checker/plugin-update-checker.php';
+require __DIR__ . '/plugin-update-checker-5.6/plugin-update-checker.php';
 
 $updateChecker = Puc_v4_Factory::buildUpdateChecker(
     'https://github.com/tyfnacici/sontechbot-woocommerce-sync/',
