@@ -3,7 +3,7 @@
  * Plugin Name: Sontechbot - WooCommerce Senkron
  * Plugin URI:  https://github.com/tyfnacici/sontechbot-woocommerce-sync
  * Description: Exposes single & bulk REST endpoints to get the product, update price & stock by barcode (_original_id), with rate limiting and logging for not-found products.
- * Version:     1.0.1
+ * Version:     1.0.0
  * Author:      Tayfun Açıcı
  * Author URI:  https://tyfnacici.xyz
  * License:     GPL-3.0
@@ -378,14 +378,16 @@ function wcbss_render_not_found_log_page() {
  */
 require __DIR__ . '/plugin-update-checker-5.6/plugin-update-checker.php';
 
-$updateChecker = Puc_v4_Factory::buildUpdateChecker(
-    'https://github.com/tyfnacici/sontechbot-woocommerce-sync/',
-    __FILE__,
-    'sontechbot-woocommerce-sync'
+use YahnisElsts\PluginUpdateChecker\v5p6\PucFactory;
+
+$myUpdateChecker = PucFactory::buildUpdateChecker(
+    'https://github.com/tyfnacici/sontechbot-woocommerce-sync/', // The URL of the GitHub repository.
+    __FILE__,                                                   // Full path to the main plugin file.
+    'sontechbot-woocommerce-sync'                               // Unique plugin slug.
 );
 
-// Optional: provide a GitHub personal access token if needed to avoid rate limits
-// $updateChecker->setAuthentication('YOUR_GITHUB_PERSONAL_ACCESS_TOKEN');
+// Optional: If you're using a private repository, specify the access token like this:
+// $myUpdateChecker->setAuthentication('YOUR_GITHUB_PERSONAL_ACCESS_TOKEN');
 
-// Ensure we check the 'main' branch for new releases
-$updateChecker->setBranch('main');
+// Set the branch that contains the stable release.
+$myUpdateChecker->setBranch('main');
