@@ -28,17 +28,31 @@ if ( ! function_exists( 'wcbss_require_woocommerce' ) ) {
      * Ensure WooCommerce is installed and active. If it isn't, deactivate this plugin and show an admin notice.
      */
     function wcbss_require_woocommerce() {
-        if ( ! class_exists( 'WooCommerce' ) ) {
-            // Show admin error notice.
-            add_action( 'admin_notices', function () {
-                echo '<div class="notice notice-error"><p><strong>Sontechbot - WooCommerce Senkron</strong> eklentisi için <strong>WooCommerce</strong> eklentisi yüklü ve etkin olmalıdır.</p></div>';
-            } );
-            // Deactivate our plugin.
-            deactivate_plugins( plugin_basename( __FILE__ ) );
-            return false;
+    if ( ! class_exists( 'WooCommerce' ) ) {
+        // Log the error for debugging.
+        if ( function_exists('error_log') ) {
+            error_log('Sontechbot Sync: WooCommerce not found on activation.');
         }
-        return true;
+        // Only try to deactivate if the function exists.
+        if ( function_exists('deactivate_plugins') && function_exists('plugin_basename') ) {
+            deactivate_plugins( plugin_basename( __FILE__ ) );
+        }
+        // Set an option to show admin notice on next page load.
+        if ( function_exists('update_option') ) {
+            update_option('wcbss_wc_missing_notice', 1);
+        }
+        return false;
     }
+    return true;
+}
+
+// Show admin notice if WooCommerce was missing during activation.
+add_action( 'admin_notices', function () {
+    if ( get_option('wcbss_wc_missing_notice') ) {
+        echo '<div class="notice notice-error"><p><strong>Sontechbot - WooCommerce Senkron</strong> eklentisi için <strong>WooCommerce</strong> eklentisi yüklü ve etkin olmalıdır.</p></div>';
+        delete_option('wcbss_wc_missing_notice');
+    }
+} );
 }
 // Run the check on activation.
 register_activation_hook( __FILE__, 'wcbss_require_woocommerce' );
